@@ -43,7 +43,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
    //Timer
 
-   const deadline = '2021-02-01';
+   const deadline = '2021-02-11';
 
    function getTimeRemaining(endtime) {
       const t = Date.parse(endtime) - Date.parse(new Date()),
@@ -63,7 +63,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
    function getZero(num) {
       if (num >= 0 && num < 10) {
-         return `0${num}`;
+         return '0' + num;
       } else {
          return num;
       }
@@ -97,29 +97,28 @@ window.addEventListener('DOMContentLoaded', () => {
    //Modal
 
    const modalTrigger = document.querySelectorAll('[data-modal]'),
-         modal = document.querySelector('.modal'),
-         modalCloseBtn = document.querySelector('[data-close]');
-         
-
-   function openModal() {
-      modal.classList.toggle('show');
-      document.body.style.overflow = 'hidden';
-      // clearTimeout(timerId);
-   };
-
+         modal = document.querySelector('.modal');
+   
+   
    modalTrigger.forEach(btn => {
-      btn.addEventListener('click', openModal)
-   });
+      btn.addEventListener('click', openModal);
+   });     
 
    function closeModal() {
-      modal.classList.toggle('show');
+      modal.classList.add('hide');
+      modal.classList.remove('show');
       document.body.style.overflow = '';
    }
 
-   modalCloseBtn.addEventListener('click', closeModal);
+   function openModal() {
+      modal.classList.add('show');
+      modal.classList.remove('hide');
+      document.body.style.overflow = 'hidden';
+      clearTimeout(timerId);
+   };
 
    modal.addEventListener('click', (e) => {
-      if(e.target === modal) {
+      if(e.target === modal  || e.target.getAttribute('data-close') == '') {
          closeModal();
       }
    });
@@ -130,10 +129,10 @@ window.addEventListener('DOMContentLoaded', () => {
       }
    });
 
-   // const timerId = setTimeout(openModal, 3000);
+   const timerId = setTimeout(openModal, 300000);
 
    function showModalByScroll() {
-      if(window.pageYOffset + document.documentElement.clientHeight === document.documentElement.scrollHeight){
+      if(window.pageYOffset + document.documentElement.clientHeight >= document.documentElement.scrollHeight){
          openModal();
          window.removeEventListener('scroll', showModalByScroll);
       }
@@ -144,13 +143,14 @@ window.addEventListener('DOMContentLoaded', () => {
    // Using class and constructor
 
    class MenuCard{
-      constructor(src, alt, title, descrip, price, parentSelector) {
+      constructor(src, alt, title, descrip, price, parentSelector, ...classes) {
          this.src = src;
          this.alt = alt;
          this.title = title;
          this.descrip = descrip; 
          this.price = price;
          this.parent = document.querySelector(parentSelector);
+         this.classes = classes;
          this.transfer = 27;
          this.changeToUAH();
       }
@@ -161,8 +161,14 @@ window.addEventListener('DOMContentLoaded', () => {
 
       render() {
          const element = document.createElement('div');
+         if(this.classes.length === 0) {
+            this.element = 'menu__item';
+            element.classList.add(this.element);
+         } else {
+            this.classes.forEach( i => element.classList.add(i))
+         }
+
          element.innerHTML = `
-            <div class="menu__item">
                <img src=${this.src} alt=${this.alt}>
                <h3 class="menu__item-subtitle">${this.title}</h3>
                <div class="menu__item-descr">${this.descrip}</div>
@@ -171,7 +177,6 @@ window.addEventListener('DOMContentLoaded', () => {
                   <div class="menu__item-cost">Цена:</div>
                   <div class="menu__item-total"><span>${this.price}</span> грн/день</div>
                </div>
-             </div>
          `;
          this.parent.append(element);
       }
@@ -183,7 +188,8 @@ window.addEventListener('DOMContentLoaded', () => {
       'Меню "Фитнес"',
       'Меню "Фитнес" - это новый подход к приготовлению блюд: больше свежих овощей и фруктов. Продукт активных и здоровых людей. Это абсолютно новый продукт с оптимальной ценой и высоким качеством!',
       9,
-      '.menu .container'
+      '.menu .container',
+      'menu__item'
    ).render();
 
    new MenuCard(
@@ -192,7 +198,8 @@ window.addEventListener('DOMContentLoaded', () => {
       'Меню “Премиум”',
       'В меню “Премиум” мы используем не только красивый дизайн упаковки, но и качественное исполнение блюд. Красная рыба, морепродукты, фрукты - ресторанное меню без похода в ресторан!',
       20,
-      '.menu .container'
+      '.menu .container',
+      'menu__item'
    ).render();
 
    new MenuCard(
@@ -204,5 +211,94 @@ window.addEventListener('DOMContentLoaded', () => {
       '.menu .container'
    ).render();
 
+    //Form 
+
+    const form = document.querySelectorAll('form');
+
+   const message = {
+      loading: 'icons/loading.svg',
+      success: 'Спасибо! скоро мы вам позвоним!',
+      failure: 'Что-то пошло не так...'
+   };
+
+   form.forEach(item => {
+      postData(item);
+   });
+
+    function postData(form){
+       form.addEventListener('submit', (e) => {
+          e.preventDefault();
+
+          let statusMessage = document.createElement('img');
+          statusMessage.src = message.loading;
+          statusMessage.style.cssText = `
+            display: block;
+            margin: 0 auto;
+          `;
+
+         form.insertAdjacentElement('afterend', statusMessage);
+         
+         const formData = new FormData(form);
+
+         const object = {};
+         formData.forEach(function (value, key){
+            object[key] =  value;
+         });
+
+         fetch('server.php', {
+            method: "POST",
+            headers: {
+               'Content-type': 'application/json'
+            },
+            body: JSON.stringify(object)
+         }).then(data => data.text())
+         .then(data => {
+            console.log(data);
+            showThanksModal(message.success);
+            statusMessage.remove();
+         }).catch(() => {
+            showThanksModal(message.failure);
+         }).finally(() => {
+            form.reset();
+         })
+
+         // request.addEventListener('load', () => {
+         //    if(request.status === 200) {
+         //       console.log(request.response);
+         //       showThanksModal(message.success);
+         //       form.reset();
+         //       statusMessage.remove();
+         //    } else {
+         //       showThanksModal(message.failure);
+         //    }
+         // });
+       });
+    }
+
+    function showThanksModal (message){
+       const prevModalDialog = document.querySelector('.modal__dialog');
+
+       prevModalDialog.classList.add('hide');
+       openModal();
+       
+       const thanksModal = document.createElement('div');
+       thanksModal.classList.add('modal__dialog');
+       thanksModal.innerHTML = `
+         <div class="modal__content">
+            <div class="modal__close" data-close>×</div>
+            <div class="modal__title">${message}</div>
+         </div>
+       `;
+
+       document.querySelector('.modal').append(thanksModal);
+       
+       setTimeout(() => {
+         thanksModal.remove();
+       prevModalDialog.classList.add('show');
+       prevModalDialog.classList.remove('hide');
+       closeModal();
+       }, 4000);
+
+    }
 
 });
