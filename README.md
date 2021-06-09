@@ -1,2 +1,2 @@
 # udemy-food
-project from the course on udemy
+### The project was made during the course https://www.udemy.com/course/javascript_full/
