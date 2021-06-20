@@ -1,2 +1,3 @@
 # udemy-food
-project from the course on udemy
+https://kateshukhto.github.io/udemy-food/
+### The project was made during the course https://www.udemy.com/course/javascript_full/
