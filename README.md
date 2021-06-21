@@ -12,5 +12,6 @@ A single-page website is developed in Javascript. The project practices the crea
 - Webpack
 - Babel
 - Git
-- 
-#### The project was made following by [the course]
+
+
+#### The project was made following by [the course](https://www.udemy.com/course/javascript_full/)
